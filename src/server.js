@@ -6,13 +6,13 @@ import {
   NotFound,
   errorHandler,
 } from './middlewares/errorHandlerMiddleware.js';
-import userRoutes from './Routes/userRoutes.js';
+import { authRouter } from './routes/auth.router.js';
 const port = process.env.PORT;
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); //form data
-app.use(cookieParser())
-app.use('/api/users', userRoutes);
+app.use(cookieParser());
+app.use('/api/users', authRouter);
 app.get('/', (req, res) => {
   res.send('hello saadoon');
 });

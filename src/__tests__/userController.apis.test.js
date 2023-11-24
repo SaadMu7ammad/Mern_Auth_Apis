@@ -4,7 +4,7 @@ import {
   myData,
   registerUser,
   sum,
-} from '../Controllers/userController.js';
+} from '../controllers/auth.controller.js';
 import dotenv from 'dotenv/config';
 
 import { server } from '../server.js';
