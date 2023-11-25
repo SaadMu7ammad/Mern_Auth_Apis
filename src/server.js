@@ -7,12 +7,14 @@ import {
   errorHandler,
 } from './middlewares/errorHandlerMiddleware.js';
 import { authRouter } from './routes/auth.router.js';
+import { profileRouter } from './routes/profile.router.js';
 const port = process.env.PORT;
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); //form data
 app.use(cookieParser());
 app.use('/api/users', authRouter);
+app.use('/api/users/profile', profileRouter);
 app.get('/', (req, res) => {
   res.send('hello saadoon');
 });
