@@ -1,10 +1,14 @@
-import { UnauthenticatedError } from "../errors/index.js";
+import { NotFoundError, UnauthenticatedError } from "../errors/index.js";
 import { User } from "../models/userModel.js";
 
 const getUserProfile = (req) => {
+  if(!req) throw new NotFoundError('user not exist')
+
   return req.user._doc;
 };
 const updateUserProfile = async (reqUser, reqBody) => {
+  if(!reqUser) throw new NotFoundError('user not exist')
+
   const user = await User.findById(reqUser._id);
 
   if (!user) throw new UnauthenticatedError('not found an id');
