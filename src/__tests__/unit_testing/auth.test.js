@@ -3,7 +3,6 @@ import { generateToken } from '../../utils/generateToken.js';
 import { authService } from '../../services/auth.service.js';
 import { BadRequestError, UnauthenticatedError } from '../../errors/index.js';
 import { NotFoundError } from '../../errors/not-found.js';
-import bcryptjs from 'bcryptjs';
 // import { generateToken } from '../utils/generateToken.js';
 // import { jest } from '@jest/globals';
 // jest.mock('express-async-handler', () => ({
@@ -38,11 +37,11 @@ import bcryptjs from 'bcryptjs';
 //   generateToken: jest.fn().mockReturnValue('jwt'),
 // }));
 
-jest.mock('bcryptjs', () => ({
-  genSalt: jest.fn(),
-  hash: jest.fn(),
-  compare: jest.fn(),
-}));
+// jest.mock('bcryptjs', () => ({
+//   genSalt: jest.fn(),
+//   hash: jest.fn(),
+//   compare: jest.fn(),
+// }));
 jest.mock('../../models/userModel.js', () => ({
   User: {
     findOne: jest.fn(),
@@ -55,7 +54,7 @@ jest.mock('../../models/userModel.js', () => ({
 //   server.close();
 // });
 jest.mock('../../utils/generateToken.js', () => ({
-  generateToken: jest.fn().mockReturnValue('jwt')
+  generateToken: jest.fn().mockReturnValue('jwt'),
 }));
 describe('unit testing for register user', () => {
   afterEach(() => {
@@ -162,56 +161,37 @@ describe('unit testing for auth user', () => {
       expect(error.name).toBe('Error');
     }
   });
-//compare password mocking !!
-  // it('when email is found but password is incorrect', async () => {
-  //   const user = {
-  //     email: 'user@gmail.com',
-  //     password: 'password',
-  //   };
-  //   User.findOne.mockResolvedValue(user);
+  it('when email is found but password is incorrect', async () => {
+    const user = {
+      email: 'user@gmail.com',
+      password: 'password',
+    };
+    User.findOne.mockResolvedValue(user);
+    user.comparePassword = jest.fn().mockResolvedValue(false);
 
-  //   // userSchema.methods.comparePassword.mockResolvedValue(false);
-  //   // bcryptjs.compare.mockResolvedValue(false);
+    await expect(
+      authService.authUser(user.email, user.password)
+    ).rejects.toThrow('invalid password');
+    // try {
+    //   await authService.authUser(user.email, user.password);
+    //   // throw new BadRequestError('email exists and must be not');
+    // } catch (error) {
+    //   expect(error).toBeInstanceOf(UnauthenticatedError);
+    //   expect(error.statusCode).toBe(401);
+    //   expect(error.name).toBe('Error');
+    // }
+  });
 
-  //   try {
-  //     await authService.authUser(user.email, user.password);
-  //     // throw new BadRequestError('email exists and must be not');
-  //   } catch (error) {
-  //     expect(error).toBeInstanceOf(UnauthenticatedError);
-  //     expect(error.statusCode).toBe(401);
-  //     expect(error.name).toBe('Error');
-  //   }
-  // });
+  it('when email is found and password is correct', async () => {
+    const user = {
+      email: 'user@gmail.com',
+      password: 'password',
+    };
+    User.findOne.mockResolvedValue(user);
+    user.comparePassword = jest.fn().mockResolvedValue(true);
 
-
-  //   it('when email is found and password is correct', async () => {
-  //     const user = {
-  //       name: 'saad',
-  //     };
-  //     User.findOne = jest.fn().mockResolvedValue(user);
-  //     user.comparePassword = jest.fn().mockResolvedValue(true);
-  //     const req = {
-  //       body: {
-  //         name: 'ss',
-  //         email: 'saad2@gmail.com',
-  //         password: '123',
-  //       },
-  //     };
-  //     const res = {
-  //       status: jest.fn().mockReturnThis(),
-  //       json: jest.fn().mockReturnValue(req.body),
-  //     };
-  //     generateToken.mockReturnValue(true);
-  //     const checkerObj = {
-  //       name: 'ss',
-  //       email: 'saad2@gmail.com',
-  //       password: '123',
-  //     };
-  //     await expect(authUser(req, res)).resolves.toEqual(checkerObj);
-
-  //     User.findOne.mockReset();
-  //     generateToken.mockReset();
-  //     user.comparePassword.mockReset();
-  //     jest.resetAllMocks();
-  // });
+    await expect(
+      authService.authUser(user.email, user.password)
+    ).resolves.not.toThrow('invalid password');
+  });
 });
