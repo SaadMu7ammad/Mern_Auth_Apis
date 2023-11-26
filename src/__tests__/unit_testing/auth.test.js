@@ -49,10 +49,13 @@ jest.mock('../../models/userModel.js', () => ({
 //   await mongoose.disconnect();
 //   server.close();
 // });
-// jest.mock('../../utils/generateToken.js', () => ({
-// //   generateToken: jest.fn().mockReturnValue('jwt')
-// }));
+jest.mock('../../utils/generateToken.js', () => ({
+  generateToken: jest.fn().mockReturnValue('jwt')
+}));
 describe('unit testing for register user', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
   it('should throw error when no data sent', async () => {
     try {
       const result = await authService.registerUser();
@@ -72,7 +75,7 @@ describe('unit testing for register user', () => {
     //   User.findOne=jest.fn().mockResolvedValue({ name: 'user' });
     User.findOne.mockResolvedValue({ name: 'user' });
     try {
-      await authService.registerUser('saad', 'saad@gmail.com', '123');
+      await authService.registerUser('user', 'user@gmail.com', 'password');
     } catch (err) {
       expect(err).toBeInstanceOf(BadRequestError);
       expect(err.statusCode).toBe(400);
@@ -85,58 +88,52 @@ describe('unit testing for register user', () => {
     // expect(async () => await registerUser(req)).rejects.toThrow();
     // User.findOne.mockReset();
   });
-  //   it('when creating a user had an internal error', async () => {
-  //     User.findOne = jest.fn().mockResolvedValue(null);
-  //     User.create = jest.fn().mockResolvedValue(null);
+    it('when user not created after while regestering', async () => {
+      User.findOne.mockResolvedValue(null);
+      User.create.mockResolvedValue(null);
 
-  //     const req = {};
-  //     req.body = {
-  //       name: 'ss',
-  //       email: 'saad2@gmail.com',
-  //       password: '123',
-  //     };
-  //     // expect(async () => await registerUser(req)).rejects.toThrow();
-  //     try {
-  //       await registerUser(req);
-  //       fail('Expected the function to throw a BadRequestError');
-  //     } catch (error) {
-  //       expect(error).toBeInstanceOf(BadRequestError);
-  //       expect(error.name).toBe('Error');
-  //     }
-
-  //     User.create.mockReset();
-  //     User.findOne.mockReset();
-  //   });
-  //   it('when creating a user had an internal error', async () => {
-  //     const user = {
-  //       name: 'ss',
-  //       email: 'saad3@gmail.com',
-  //       password: '123',
-  //     };
-  //     User.findOne = jest.fn().mockResolvedValue(null);
-  //     User.create = jest.fn().mockResolvedValue(user);
-  //     const req = {};
-  //     req.body = {
-  //       name: 'ss',
-  //       email: 'saad2@gmail.com',
-  //       password: '123',
-  //     };
-  //     const res = {
-  //       status: jest.fn().mockReturnThis(),
-  //       json: jest.fn().mockReturnValue(req.body),
-  //     };
-  //     generateToken.mockReturnValue(true);
-  //     const checkerObj = {
-  //       name: 'ss',
-  //       email: 'saad2@gmail.com',
-  //       password: '123',
-  //     };
-  //     await expect(registerUser(req, res)).resolves.toEqual(checkerObj);
-  //     jest.resetAllMocks();
-  //     User.create.mockReset();
-  //     User.findOne.mockReset();
-  //     generateToken.mockReset();
-  //   });
+      const req = {};
+      req.body = {
+        name: 'user',
+        email: 'user@gmail.com',
+        password: 'password',
+      };
+      // expect(async () => await registerUser(req)).rejects.toThrow();
+      try {
+        await authService.registerUser(req);
+        fail('Expected the function to throw a BadRequestError');
+      } catch (error) {
+        expect(error).toBeInstanceOf(BadRequestError);
+        expect(error.name).toBe('Error');
+      }
+      
+    });
+    it('creating a user successfully', async () => {
+      const user = {
+        name: 'user',
+        email: 'user@gmail.com',
+        password: 'password',
+      };
+      User.findOne.mockResolvedValue(null);
+      User.create.mockResolvedValue(user);
+      const req = {};
+      req.body = {
+        name: 'user',
+        email: 'user@gmail.com',
+        password: 'password',
+      };
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnValue(req.body),
+      };
+      // generateToken.mockReturnValue(true);
+      const checkerObj = {
+        name: 'user',
+        email: 'user@gmail.com',
+        password: 'password',
+      };
+      await expect(authService.registerUser(checkerObj.name,checkerObj.email,checkerObj.password)).resolves.toEqual(checkerObj);
+    });
 });
 
 // describe('unit test for auth user', () => {
