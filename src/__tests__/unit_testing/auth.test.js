@@ -1,9 +1,9 @@
 import { User } from '../../models/userModel.js';
 import { generateToken } from '../../utils/generateToken.js';
 import { authService } from '../../services/auth.service.js';
-import { UnauthenticatedError } from '../../errors/unauthenticated.js';
-import { BadRequestError } from '../../errors/bad-request.js';
-
+import { BadRequestError, UnauthenticatedError } from '../../errors/index.js';
+import { NotFoundError } from '../../errors/not-found.js';
+import bcryptjs from 'bcryptjs';
 // import { generateToken } from '../utils/generateToken.js';
 // import { jest } from '@jest/globals';
 // jest.mock('express-async-handler', () => ({
@@ -38,6 +38,11 @@ import { BadRequestError } from '../../errors/bad-request.js';
 //   generateToken: jest.fn().mockReturnValue('jwt'),
 // }));
 
+jest.mock('bcryptjs', () => ({
+  genSalt: jest.fn(),
+  hash: jest.fn(),
+  compare: jest.fn(),
+}));
 jest.mock('../../models/userModel.js', () => ({
   User: {
     findOne: jest.fn(),
@@ -88,124 +93,125 @@ describe('unit testing for register user', () => {
     // expect(async () => await registerUser(req)).rejects.toThrow();
     // User.findOne.mockReset();
   });
-    it('when user not created after while regestering', async () => {
-      User.findOne.mockResolvedValue(null);
-      User.create.mockResolvedValue(null);
+  it('when user not created after while regestering', async () => {
+    User.findOne.mockResolvedValue(null);
+    User.create.mockResolvedValue(null);
 
-      const req = {};
-      req.body = {
-        name: 'user',
-        email: 'user@gmail.com',
-        password: 'password',
-      };
-      // expect(async () => await registerUser(req)).rejects.toThrow();
-      try {
-        await authService.registerUser(req);
-        fail('Expected the function to throw a BadRequestError');
-      } catch (error) {
-        expect(error).toBeInstanceOf(BadRequestError);
-        expect(error.name).toBe('Error');
-      }
-      
-    });
-    it('creating a user successfully', async () => {
-      const user = {
-        name: 'user',
-        email: 'user@gmail.com',
-        password: 'password',
-      };
-      User.findOne.mockResolvedValue(null);
-      User.create.mockResolvedValue(user);
-      const req = {};
-      req.body = {
-        name: 'user',
-        email: 'user@gmail.com',
-        password: 'password',
-      };
-      const res = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn().mockReturnValue(req.body),
-      };
-      // generateToken.mockReturnValue(true);
-      const checkerObj = {
-        name: 'user',
-        email: 'user@gmail.com',
-        password: 'password',
-      };
-      await expect(authService.registerUser(checkerObj.name,checkerObj.email,checkerObj.password)).resolves.toEqual(checkerObj);
-    });
+    const req = {};
+    req.body = {
+      name: 'user',
+      email: 'user@gmail.com',
+      password: 'password',
+    };
+    // expect(async () => await registerUser(req)).rejects.toThrow();
+    try {
+      await authService.registerUser(req);
+      fail('Expected the function to throw a BadRequestError');
+    } catch (error) {
+      expect(error).toBeInstanceOf(BadRequestError);
+      expect(error.name).toBe('Error');
+    }
+  });
+  it('creating a user successfully', async () => {
+    const user = {
+      name: 'user',
+      email: 'user@gmail.com',
+      password: 'password',
+    };
+    User.findOne.mockResolvedValue(null);
+    User.create.mockResolvedValue(user);
+    const req = {};
+    req.body = {
+      name: 'user',
+      email: 'user@gmail.com',
+      password: 'password',
+    };
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnValue(req.body),
+    };
+    // generateToken.mockReturnValue(true);
+    const checkerObj = {
+      name: 'user',
+      email: 'user@gmail.com',
+      password: 'password',
+    };
+    await expect(
+      authService.registerUser(
+        checkerObj.name,
+        checkerObj.email,
+        checkerObj.password
+      )
+    ).resolves.toEqual(checkerObj);
+  });
 });
 
-// describe('unit test for auth user', () => {
-//   it('when email is not found while login', async () => {
-//     User.findOne = jest.fn().mockResolvedValue(null);
-//     const req = {
-//       body: {
-//         email: 'dummy@gmail.com',
-//       },
-//     };
-//     try {
-//       await authUser(req);
-//       throw new BadRequestError('email exists and must be not');
-//     } catch (error) {
-//       expect(error).toBeInstanceOf(NotFoundError);
-//       expect(error.statusCode).toBe(404);
-//       expect(error.name).toBe('Error');
-//     }
-//     User.findOne.mockReset();
-//     jest.resetAllMocks();
-//   });
-//   it('when email is found but password is incorrect', async () => {
-//     const user = {
-//       name: 'saad',
-//     };
-//     User.findOne = jest.fn().mockResolvedValue(user);
-//     user.comparePassword = jest.fn().mockResolvedValue(false);
-//     const req = {
-//       body: {
-//         email: 'saad1@gmail.com',
-//         password: '111',
-//       },
-//     };
-//     try {
-//       await authUser(req);
-//       throw new BadRequestError('email exists and must be not');
-//     } catch (error) {
-//       expect(error).toBeInstanceOf(UnauthenticatedError);
-//       expect(error.statusCode).toBe(401);
-//       expect(error.name).toBe('Error');
-//     }
-//     User.findOne.mockReset();
-//     jest.resetAllMocks();
-//   });
-//   it('when email is found and password is correct', async () => {
-//     const user = {
-//       name: 'saad',
-//     };
-//     User.findOne = jest.fn().mockResolvedValue(user);
-//     user.comparePassword = jest.fn().mockResolvedValue(true);
-//     const req = {
-//       body: {
-//         name: 'ss',
-//         email: 'saad2@gmail.com',
-//         password: '123',
-//       },
-//     };
-//     const res = {
-//       status: jest.fn().mockReturnThis(),
-//       json: jest.fn().mockReturnValue(req.body),
-//     };
-//     generateToken.mockReturnValue(true);
-//     const checkerObj = {
-//       name: 'ss',
-//       email: 'saad2@gmail.com',
-//       password: '123',
-//     };
-//     await expect(authUser(req, res)).resolves.toEqual(checkerObj);
+describe('unit testing for auth user', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+  it('when email is not found while login', async () => {
+    User.findOne.mockResolvedValue(null);
+    const email = 'dummy@gmail.com';
+    const password = 'password';
+    try {
+      await authService.authUser(email, password);
+    } catch (error) {
+      expect(error).toBeInstanceOf(NotFoundError);
+      expect(error.statusCode).toBe(404);
+      expect(error.name).toBe('Error');
+    }
+  });
+//compare password mocking !!
+  // it('when email is found but password is incorrect', async () => {
+  //   const user = {
+  //     email: 'user@gmail.com',
+  //     password: 'password',
+  //   };
+  //   User.findOne.mockResolvedValue(user);
 
-//     User.findOne.mockReset();
-//     generateToken.mockReset();
-//     user.comparePassword.mockReset();
-//     jest.resetAllMocks();
-//   });
-// });
+  //   // userSchema.methods.comparePassword.mockResolvedValue(false);
+  //   // bcryptjs.compare.mockResolvedValue(false);
+
+  //   try {
+  //     await authService.authUser(user.email, user.password);
+  //     // throw new BadRequestError('email exists and must be not');
+  //   } catch (error) {
+  //     expect(error).toBeInstanceOf(UnauthenticatedError);
+  //     expect(error.statusCode).toBe(401);
+  //     expect(error.name).toBe('Error');
+  //   }
+  // });
+
+
+  //   it('when email is found and password is correct', async () => {
+  //     const user = {
+  //       name: 'saad',
+  //     };
+  //     User.findOne = jest.fn().mockResolvedValue(user);
+  //     user.comparePassword = jest.fn().mockResolvedValue(true);
+  //     const req = {
+  //       body: {
+  //         name: 'ss',
+  //         email: 'saad2@gmail.com',
+  //         password: '123',
+  //       },
+  //     };
+  //     const res = {
+  //       status: jest.fn().mockReturnThis(),
+  //       json: jest.fn().mockReturnValue(req.body),
+  //     };
+  //     generateToken.mockReturnValue(true);
+  //     const checkerObj = {
+  //       name: 'ss',
+  //       email: 'saad2@gmail.com',
+  //       password: '123',
+  //     };
+  //     await expect(authUser(req, res)).resolves.toEqual(checkerObj);
+
+  //     User.findOne.mockReset();
+  //     generateToken.mockReset();
+  //     user.comparePassword.mockReset();
+  //     jest.resetAllMocks();
+  // });
+});
