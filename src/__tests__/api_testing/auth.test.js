@@ -25,14 +25,14 @@ beforeAll(async () => {
     password: 'password',
   };
 
+  await User.findOneAndDelete({ email: 'newtest@gmail.com' });
   const userExist = await User.findOne({ email: obj.email });
 
   if (!userExist) {
     const res = await request(server).post('/api/users').send(obj);
-    }
-    
+
+  }  
   //for testing creating a new user so we delete it before the testing to add it again to the db
-  await User.findOneAndDelete({ email: 'newtest@gmail.com' });
 });
 afterAll(async () => {
   await mongoose.disconnect();
@@ -63,14 +63,14 @@ describe('api testing for register user ', () => {
     expect(res.body).toHaveProperty('email', 'newtest@gmail.com');
   });
 });
-  describe('api testing for auth user', () => {
-    it('when email is not found while login', async () => {
-      const existingObj = {
-        email: 'test@gmail.com',
-        password: 'password',
-      };
-      const res = await request(server).post('/api/users/auth').send(existingObj);
-      expect(res.status).toBe(201);
-      expect(res.body).toHaveProperty('name', 'test');
-    });
+describe('api testing for auth user', () => {
+  it('when email is not found while login', async () => {
+    const existingObj = {
+      email: 'test@gmail.com',
+      password: 'password',
+    };
+    const res = await request(server).post('/api/users/auth').send(existingObj);
+    expect(res.status).toBe(201);
+    expect(res.body).toHaveProperty('name', 'test');
   });
+});

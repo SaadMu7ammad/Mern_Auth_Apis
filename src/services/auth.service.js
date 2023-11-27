@@ -4,7 +4,7 @@ import { UnauthenticatedError } from '../errors/unauthenticated.js';
 import { User } from '../models/userModel.js';
 
 const authUser = async (email, password) => {
-  if (!email || !password) throw new BadRequestError('data incomplete');
+  if (!email || !password) throw new BadRequestError('data incomplete for login');
   const user = await User.findOne({ email: email });
   if (!user) throw new NotFoundError('email not found');
 
@@ -17,7 +17,7 @@ const authUser = async (email, password) => {
 
 const registerUser = async (name, email, password) => {
   if (!name || !email || !password)
-    throw new BadRequestError('data incomplete');
+    throw new BadRequestError('data incomplete for registering');
 
   const userExist = await User.findOne({ email: email });
   if (userExist) throw new BadRequestError('user is registered already');

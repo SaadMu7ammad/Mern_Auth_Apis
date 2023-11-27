@@ -6,8 +6,12 @@ import { User } from '../models/userModel.js';
 import { UnauthenticatedError } from '../errors/unauthenticated.js';
 
 const auth = asyncHandler(async (req, res, next) => {
-  const authCookie = req.cookies.jwt; //according to cookie parser
+  let authCookie = req.cookies.jwt; //according to cookie parser
   // throw new Error ('Authentication invalid');
+  if (!authCookie) {
+    authCookie = req.headers.authorization.startsWith('Bearer')
+    authCookie = req.headers.authorization.split(' ')[1];
+  }
   if (!authCookie) {
     throw new UnauthenticatedError('Authentication invalid');
   }

@@ -12,11 +12,12 @@ import { authService } from '../services/auth.service.js';
 const authUser = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
   const user = await authService.authUser(email, password);
-  generateToken(res, user._id);
+  const token=generateToken(res, user._id);
   return res.status(201).json({
     _id: user._id,
     name: user.name,
     email: user.email,
+    token
   });
 });
 // post /api/users/
